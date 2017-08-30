@@ -99,9 +99,9 @@ public class GameManager implements ActionListener {
        about.append("(monitor, blocking queue, file lock, wait-notify, atomic variable).");
        about.append(newLine + newLine);
        about.append("It is mainly written to demonstrate the use of various Java techniques." + newLine);  
-       about.append("These include basic Swing graphics, files including NIO2 file locks, abstract classes, " + newLine);
+       about.append("These include basic Swing graphics, files including NIO2 file locks, abstract classes,  inner classes," + newLine);
        about.append("multiple levels of inheritence, and it is multi-threaded and can even handle multiple processes." + newLine);
-       about.append("Games can be paused using synchronized wait-notify methods.");
+       about.append("Games are paused using synchronized wait-notify methods.");
        about.append(newLine + newLine);
        about.append("All game objects derive from the abstract class UFO (since UFOs don't exist they can't be instaniated :)." + newLine);
        about.append("High scores are passed to a high-score processor using a blocking queue." + newLine);
