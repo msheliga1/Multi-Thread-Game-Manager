@@ -92,11 +92,27 @@ public class GameManager implements ActionListener {
       JButton button = (JButton) obj;
       // System.out.println("The buttons label is " + button.getText());  // getLabel deprecated
       if (button.getText().equals("About Asteroids")) {
-       String about = "Asteroids by Michael Sheliga.  July 2017 \r\n";
-       about += "This asteroids version includes sone basic Swing graphics, NIO2, abstract classes and \r\n";
-       about += "is multi-threaded. Games are paused using synchronized wait-notify methods. \r\n";
-       about += "It is mainly written to demonstrate the use of various Java techniques.";    
-       JOptionPane.showMessageDialog(null, about, "About Asteroids", JOptionPane.INFORMATION_MESSAGE); 
+       String newLine = System.lineSeparator();
+       StringBuilder about = new StringBuilder("Welcome to the multi-threaded, multi-process Asteroids by Michael Sheliga.  July 2017");
+       about.append(newLine + newLine);
+       about.append("This asteroids version includes 18 classes and 5 types of synchronization: ");
+       about.append("(monitor, blocking queue, file lock, wait-notify, atomic variable).");
+       about.append(newLine + newLine);
+       about.append("It is mainly written to demonstrate the use of various Java techniques." + newLine);  
+       about.append("These include basic Swing graphics, files including NIO2 file locks, abstract classes, " + newLine);
+       about.append("multiple levels of inheritence, and it is multi-threaded and can even handle multiple processes." + newLine);
+       about.append("Games can be paused using synchronized wait-notify methods.");
+       about.append(newLine + newLine);
+       about.append("All game objects derive from the abstract class UFO (since UFOs don't exist they can't be instaniated :)." + newLine);
+       about.append("High scores are passed to a high-score processor using a blocking queue." + newLine);
+       about.append("The high score processor consists of four classes and saves high scores to a file if files" + newLine);
+       about.append("can be written to. Otherwise high scores are saved locally.  When files are used " + newLine);
+       about.append("concurrency is maintained between processes (not just threads, but different processes) using a file lock." + newLine);
+       about.append("This features a 5xWrap file: RandomAccessFile->OutputStream->OutputStreamWriter->BufferedWriter->PrintWriter." + newLine);
+       about.append("Since file locks and random access files are needed for inter-process communication" + newLine);
+       about.append(" this appears to be necessary, and is similar to the file locks I used in Anjon's ticketing system." + newLine);
+  
+       JOptionPane.showMessageDialog(null, about.toString(), "About Asteroids", JOptionPane.INFORMATION_MESSAGE); 
       } else if (button.getText().equals("Play Asteroids")) {
         invokeGameThread("Mikes Game Thread");
       } else if (button.getText().equals("High Scores")) {

@@ -46,14 +46,12 @@ public class RoidThread implements Runnable, HighScoreClassInfo {
     // values used to display info in message panel
     private int gameLevel = 1;      // each screen equates to a game level
     private int livesLeft = 3;      // 3 lives to start with
-    private LocalDateTime now = LocalDateTime.now(); // ditto
     private StringBuilder panelMessage = new StringBuilder("");
     private int score = 0;  
  
 
     // ------------ RoidThread Main --------------------------
     public static void main(String[] args)  {
-      // System.out.println(" Package Games Roids ");
       BlockingQueue<Integer> queue = new ArrayBlockingQueue<>(1); // only 1 thread ever here.
       new RoidThread("Mikes Asteroid Standalone Game", queue);	
     }  // End main
@@ -83,7 +81,7 @@ public class RoidThread implements Runnable, HighScoreClassInfo {
       } // end main run while loop 
       roidGUI.dispose();  // get Rid of GUI frame Window
       try {
-          if (!windowClosing) queue.put(score+5000);   // pass score to parent, so it might be recorded.
+          if (!windowClosing) queue.put(score);   // pass score to parent, so it might be recorded.
       } catch (InterruptedException e) {
           // System.out.println("Roid Game interrupted while trying to post score.");
           Thread.currentThread().interrupt();
@@ -161,7 +159,6 @@ public class RoidThread implements Runnable, HighScoreClassInfo {
             score += 100;
             initializeGameLevel();
         }
-        now = LocalDateTime.now();
         if (myShip == null) System.out.println("MyShip null in roidUpdate --------------------");
         for (UFO ufo: ufos) {
             ufo.update(wrapSize); // decelerate, move, decrement updatesLeft 
