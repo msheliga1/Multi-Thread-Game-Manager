@@ -11,7 +11,7 @@ import java.awt.event.ActionListener;  // for buttons
 // import java.awt.Button;  // old awt button (for testing only)
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.Insets; 
+import java.awt.Insets;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -24,7 +24,7 @@ import javax.swing.JButton;
 
 public class GameManager implements ActionListener {
 
-   static final int MAX_THREADS = 3;
+   static final int MAX_THREADS = 3;  // one highScoreProcessor and 2 games
  
    static int gameCounter = 0;
    // RoidThread[ ] activeThreads = new RoidThread[MAX_THREADS]; // wont work 
@@ -42,7 +42,7 @@ public class GameManager implements ActionListener {
    public GameManager( ) {
      try { 
        executor = Executors.newFixedThreadPool(MAX_THREADS);
-       queue = new ArrayBlockingQueue<>(6);
+       queue = new ArrayBlockingQueue<>(MAX_THREADS);  
        roidScoreProcessor = new HighScoreProcessor((new RoidThread("Dummy", queue)), queue);
        executor.execute(roidScoreProcessor);      
      } finally { 
@@ -92,31 +92,11 @@ public class GameManager implements ActionListener {
       JButton button = (JButton) obj;
       // System.out.println("The buttons label is " + button.getText());  // getLabel deprecated
       if (button.getText().equals("About Asteroids")) {
-       String newLine = System.lineSeparator();
-       StringBuilder about = new StringBuilder("Welcome to the multi-threaded, multi-process Asteroids by Michael Sheliga.  July 2017");
-       about.append(newLine + newLine);
-       about.append("This asteroids version includes 18 classes and 5 types of synchronization: ");
-       about.append("(monitor, blocking queue, file lock, wait-notify, atomic variable).");
-       about.append(newLine + newLine);
-       about.append("It is mainly written to demonstrate the use of various Java techniques." + newLine);  
-       about.append("These include basic Swing graphics, files including NIO2 file locks, abstract classes,  inner classes," + newLine);
-       about.append("multiple levels of inheritence, and it is multi-threaded and can even handle multiple processes." + newLine);
-       about.append("Games are paused using synchronized wait-notify methods.");
-       about.append(newLine + newLine);
-       about.append("All game objects derive from the abstract class UFO (since UFOs don't exist they can't be instaniated :)." + newLine);
-       about.append("High scores are passed to a high-score processor using a blocking queue." + newLine);
-       about.append("The high score processor consists of four classes and saves high scores to a file if files" + newLine);
-       about.append("can be written to. Otherwise high scores are saved locally.  When files are used " + newLine);
-       about.append("concurrency is maintained between processes (not just threads, but different processes) using a file lock." + newLine);
-       about.append("This features a 5xWrap file: RandomAccessFile->OutputStream->OutputStreamWriter->BufferedWriter->PrintWriter." + newLine);
-       about.append("Since file locks and random access files are needed for inter-process communication" + newLine);
-       about.append(" this appears to be necessary, and is similar to the file locks I used in Anjon's ticketing system." + newLine);
-  
-       JOptionPane.showMessageDialog(null, about.toString(), "About Asteroids", JOptionPane.INFORMATION_MESSAGE); 
+        displayAboutRoids();
       } else if (button.getText().equals("Play Asteroids")) {
         invokeGameThread("Mikes Game Thread");
       } else if (button.getText().equals("High Scores")) {
-        roidScoreProcessor.showHighScores( );
+        roidScoreProcessor.showHighScores( );  // roidScoreProcessor points to correct file
      } // end if-elseif
     } else {
       System.out.println("GameButtons ActionPerformed not from JButton - was a " + obj);
@@ -152,6 +132,31 @@ public class GameManager implements ActionListener {
        }
      } // end try-finally 
    } // end invokeGameThread
+  
+  // Display info about both the asteroids game and the high score processor.
+  public void displayAboutRoids( )  {
+      String newLine = System.lineSeparator();
+      StringBuilder about = new StringBuilder("Welcome to the multi-threaded, multi-process Asteroids by Michael Sheliga.  July 2017");
+      about.append(newLine + newLine);
+      about.append("This asteroids version includes 18 classes and 5 types of synchronization: ");
+      about.append("(monitor, blocking queue, file lock, wait-notify, atomic variable).");
+      about.append(newLine + newLine);
+      about.append("It is mainly written to demonstrate the use of various Java techniques." + newLine);  
+      about.append("These include basic Swing graphics, files including NIO2 file locks, abstract classes,  inner classes," + newLine);
+      about.append("multiple levels of inheritence, and it is multi-threaded and can even handle multiple processes." + newLine);
+      about.append("Games are paused using synchronized wait-notify methods." + newLine);
+      about.append("All game objects derive from the abstract class UFO (since UFOs don't exist they can't be instaniated :).");
+      about.append(newLine + newLine);
+      about.append("High scores are passed to a high-score processor using a blocking queue." + newLine);
+      about.append("The high score processor consists of four classes and saves high scores to a file if files" + newLine);
+      about.append("can be written to. Otherwise high scores are saved locally.  When files are used " + newLine);
+      about.append("concurrency is maintained between processes (not just threads, but different processes) using a file lock." + newLine);
+      about.append("This features a 5xWrap file: RandomAccessFile->OutputStream->OutputStreamWriter->BufferedWriter->PrintWriter." + newLine);
+      about.append("Since file locks and random access files are needed for inter-process communication" + newLine);
+      about.append(" this appears to be necessary, and is similar to the file locks I used in Anjon's ticketing system." + newLine);
+ 
+      JOptionPane.showMessageDialog(null, about.toString(), "About Asteroids", JOptionPane.INFORMATION_MESSAGE); 
+  } // end displayAboutRoids
 
 }  // end class GameButton
   
