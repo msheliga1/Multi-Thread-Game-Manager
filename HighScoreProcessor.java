@@ -25,10 +25,11 @@ import java.nio.channels.OverlappingFileLockException;
 import java.time.LocalDate;  // new Java8 date-time classes
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.BlockingQueue;
-import java.util.Collections;
 import java.util.List;       
 import java.util.ArrayList; 
 import javax.swing.JOptionPane;
+
+import static java.util.stream.Collectors.toList;
 import static javamjs.nio.channels.MyTryLock.myTryLock;
    
 // -------------------------------------------
@@ -206,11 +207,11 @@ public class HighScoreProcessor implements Runnable {
     } // End unsureIfCanReadWriteFile()
 
 
-    // Ddisplay a message dialog - in children of this class.
+    // Display a message dialog - in children of this class.
     public void displayReadWriteFailureMessage(int failures, String reason)  {
         // display no message for this highScoreProcessor - just silently save score locally
         // Other HSPs such as FileLockDemo will display a message.   
-    } // End updateReadWriteFailures
+    } // End displayReadWriteFailureMessage
 
 
     // Add newScore if it is a high score - possible for another player to record high score after this 
@@ -228,7 +229,6 @@ public class HighScoreProcessor implements Runnable {
         String lockMsg = "Continue waiting to permanently save your high score to a file?";
         lockMsg += " (Otherwise it will be saved only during this application.)";
         List<HighScore> fileScores = null;
-        List<HighScore> oldScores = null;
 
         if (unsureIfCanReadWriteFile()) {
             // update canRWFile or readWritefailures if file not locked.
@@ -237,19 +237,10 @@ public class HighScoreProcessor implements Runnable {
         }
 
         // get new highScores from file if possible (else use old high scores)
-        int lowScore;
-        oldScores = highScores;
-        if (canReadWriteFile) oldScores = reReadHighScores(file);
-        if (oldScores.size() < MAX_HIGH_SCORES) {
-            lowScore = 0;
-        } else {
-            lowScore = oldScores.get(oldScores.size()-1).getScore();
-        }
-        if (newScore <= lowScore)  return;  // no need to update high scores
+        if (!newScoreIsAHighScore(newScore)) return;  // no need to update high scores
 
         // get highScore name outside of fileLock since user input may take very long
-        HighScore newHigh = null; 
-        newHigh = new HighScore(inputHighScoreName(newScore), newScore);
+        HighScore newHigh = new HighScore(inputHighScoreName(newScore), newScore);
  
         // ready to add new high score - lock for reread-update-write
         // if can RW File ever ... wait for file to be unlocked . . . 
@@ -272,15 +263,13 @@ public class HighScoreProcessor implements Runnable {
                     System.out.println("Successfully lockedx1 File: " + file);
                     fileScores = HighScoreFile.readHighScoresFromFile(br);
 
-                    // Update - add, sort, delete if too large
+                    // Update - add, sort, delete if too many scores
                     fileScores.add(newHigh);  // add to list of highScores
-                    Collections.sort(fileScores);
-                    while (fileScores.size() > MAX_HIGH_SCORES) fileScores.remove(MAX_HIGH_SCORES);
- 
-                    // now write data
+                    // sort, delete if too many scores
+                    fileScores = fileScores.stream().sorted().limit(MAX_HIGH_SCORES).collect(toList());
+                    // seek(0) after reading will enable writes to overwrite file.
                     raf.seek(0);  // must move to start of file after reading!!
                     HighScoreFile.writeHighScoresToFile(fileScores, pw);
-                    System.out.println("Add: Wrote HighScores to File: " + file);
                 } // end if fileLocked or not  
             } catch (OverlappingFileLockException e) {
                 reason = " because file already locked.";
@@ -302,8 +291,8 @@ public class HighScoreProcessor implements Runnable {
         } else { // Couldnt read-write to file => use local array values
             // add, sort, delete if too large
             highScores.add(newHigh);  // add to list of highScores
-            Collections.sort(highScores);
-            while (highScores.size() > MAX_HIGH_SCORES) highScores.remove(MAX_HIGH_SCORES);
+            // sort, delete if too many scores
+            highScores = highScores.stream().sorted().limit(MAX_HIGH_SCORES).collect(toList());
             displayTitle = "High Scores";
         } // end if reason null or not
         displayHighScores(highScores, displayTitle);
@@ -311,7 +300,7 @@ public class HighScoreProcessor implements Runnable {
     } // end addNewScore()
      
     // Check if the newScore is high enough to be a new high score.
-    // List of high scores is retrived from a file, if possible.  Otherwise the local copy is used.
+    // List of high scores is retrieved from a file, if possible.  Otherwise the local copy is used.
     public boolean newScoreIsAHighScore(int newScore)  {
 
         List<HighScore> oldScores = highScores;
@@ -338,8 +327,8 @@ public class HighScoreProcessor implements Runnable {
         if (canReadWriteFile) {
             try {
                 newScores = HighScoreFile.readHighScoresFromFile(br);
-                Collections.sort(newScores);
-                while (newScores.size() > MAX_HIGH_SCORES) newScores.remove(MAX_HIGH_SCORES);
+                // sort, delete if too many scores
+                newScores = newScores.stream().sorted().limit(MAX_HIGH_SCORES).collect(toList());
             } catch (Exception e) { 
                 System.out.println("HighScoreProcessor: reRead(br): Error reading from file.");
                 System.out.println("Using old copy of high scores.");
@@ -441,8 +430,7 @@ public class HighScoreProcessor implements Runnable {
             e.printStackTrace();
         } // end try-catch
         // sort and eliminate extra entries (we only want some)
-        Collections.sort(newList);  // highest to lowest order
-        while (newList.size() > MAX_HIGH_SCORES) newList.remove(MAX_HIGH_SCORES);
+        newList = newList.stream().sorted().limit(MAX_HIGH_SCORES).collect(toList());
         return newList;
     } // End getOriginalHighScores()
 
